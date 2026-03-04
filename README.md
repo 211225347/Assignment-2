@@ -1,12 +1,12 @@
 # Rock Paper Scissors — Best of 5
 
-A browser-based **Rock Paper Scissors** game built with vanilla HTML, CSS, and JavaScript. Players compete against a CPU opponent over 5 rounds; after the final round a winner is announced. No frameworks or external libraries are required — the game runs entirely in any modern web browser.
+A browser-based **Rock Paper Scissors** game built with vanilla HTML, CSS, and JavaScript. Players compete against a CPU opponent over 5 rounds; after the final round a winner is announced. No frameworks or external libraries are required, the game runs entirely in any modern web browser.
 
 ---
 
 ## Project Description
 
-This project is a fully interactive Rock Paper Scissors game where the user plays against a computer opponent. The CPU selects its move randomly each round. After 5 rounds, the game calculates the final score and displays a winner announcement overlay. The project demonstrates core web development concepts including DOM manipulation, event handling, CSS animations, and game state management — all without any build tools or dependencies.
+This project is a fully interactive Rock Paper Scissors game where the user plays against a computer opponent. The CPU selects its move randomly each round. After 5 rounds, the game calculates the final score and displays a winner announcement overlay. The project demonstrates core web development concepts including DOM manipulation, event handling, CSS animations, and game state management all without any build tools or dependencies.
 
 **Core features:**
 - Best-of-5 format with round progress indicators (pips)
@@ -36,16 +36,16 @@ start index.html       # Windows
 xdg-open index.html    # Linux
 ```
 
-Alternatively, double-click `index.html` in your file explorer — it will open directly in your browser.
+Alternatively, double-click `index.html` in your file explorer, it will open directly in your browser.
 
-### Option 2 — Serve locally with Python (optional)
+### Option 2, Serve locally with Python (optional)
 
 ```bash
 python3 -m http.server 8000
 # Then visit: http://localhost:8000
 ```
 
-### Option 3 — Serve locally with Node.js (optional)
+### Option 3, Serve locally with Node.js (optional)
 
 ```bash
 npx serve .
