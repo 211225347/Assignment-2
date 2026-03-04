@@ -85,6 +85,7 @@ rock-paper-scissors/
 
 ### Gameplay in action
 ![Gameplay Screenshot](screenshots/gameplay.png) 
+![Gameplay Screenshot](screenshots/gameplay2.png)
 ![Gameplay Screenshot](screenshots/gameplay1.png)
 
 ---
