@@ -60,7 +60,7 @@ npx serve .
 |-------------|---------|
 | Web browser | Any modern browser Chrome, Firefox, Edge, or Safari |
 | Internet connection | Only required to load Google Fonts on first load |
-| Node.js or Python | **Optional** — only needed if running a local server (Options 2 & 3 above) |
+| Node.js or Python | **Optional**, only needed if running a local server (Options 2 & 3 above) |
 
 > **Offline use:** The game works fully offline. If there is no internet connection, Google Fonts will not load and the browser will fall back to system monospace fonts automatically. Gameplay is unaffected.
 
