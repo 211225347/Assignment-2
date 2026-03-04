@@ -21,7 +21,7 @@ This project is a fully interactive Rock Paper Scissors game where the user play
 
 ## How to Run the Project
 
-### Option 1 — Open directly in a browser (recommended, no setup needed)
+### Option 1, Open directly in a browser (recommended, no setup needed)
 
 ```bash
 # 1. Clone the repository
