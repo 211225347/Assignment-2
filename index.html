@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rock Paper Scissors</title>
+  <!-- Google Fonts v2 API - updated 2024 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: #2a2a3a;
+      --accent: #e8ff47;
+      --accent2: #ff4f7b;
+      --text: #f0f0f0;
+      --muted: #666680;
+      --win: #47ffb2;
+      --lose: #ff4f7b;
+      --draw: #e8ff47;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, #1a1a35 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, #1a0a1a 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    header { text-align: center; margin-bottom: 2.5rem; }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 10vw, 6rem);
+      letter-spacing: 0.05em;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--accent) 0%, #fff 50%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 0.4rem;
+    }
+
+    /* ROUND PIPS */
+    .round-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+    .round-pip {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: all 0.3s ease;
+    }
+    .round-pip.win  { background: var(--win);  border-color: var(--win); }
+    .round-pip.lose { background: var(--lose); border-color: var(--lose); }
+    .round-pip.draw { background: var(--draw); border-color: var(--draw); }
+
+    /* SCOREBOARD */
+    .scoreboard {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding: 1.2rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .score-block { text-align: center; }
+    .score-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 0.3rem; }
+    .score-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      line-height: 1;
+    }
+    .score-value.bump { animation: bump 0.3s ease; }
+    @keyframes bump { 0%,100%{transform:scale(1)} 50%{transform:scale(1.4)} }
+    .score-you .score-value { color: var(--accent); }
+    .score-cpu .score-value { color: var(--accent2); }
+    .score-sep { font-size: 1.5rem; color: var(--border); }
+
+    /* ARENA */
+    .arena {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .combatant { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+    .combatant-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.25em; text-transform: uppercase; }
+    .choice-display {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem;
+      transition: all 0.3s ease;
+    }
+    .choice-display.reveal { animation: pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    @keyframes pop { 0%{transform:scale(0) rotate(-20deg)} 100%{transform:scale(1) rotate(0)} }
+    .choice-display.winner { border-color: var(--win); box-shadow: 0 0 30px rgba(71,255,178,0.25); }
+    .choice-display.loser  { border-color: var(--lose); opacity: 0.5; }
+    .vs-badge {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: var(--border);
+      letter-spacing: 0.1em;
+    }
+
+    /* RESULT */
+    .result-banner {
+      text-align: center;
+      height: 2.5rem;
+      margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .result-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.1em;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+    .result-text.show { opacity: 1; transform: translateY(0); }
+    .result-text.win  { color: var(--win); }
+    .result-text.lose { color: var(--lose); }
+    .result-text.draw { color: var(--draw); }
+
+    /* CHOICES */
+    .choices { display: flex; justify-content: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .choice-btn {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      cursor: pointer; font-size: 2.5rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease;
+      position: relative; overflow: hidden;
+    }
+    .choice-btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at center, rgba(232,255,71,0.15), transparent);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .choice-btn:hover { border-color: var(--accent); transform: translateY(-4px) scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+    .choice-btn:hover::before { opacity: 1; }
+    .choice-btn:active { transform: translateY(0) scale(0.97); }
+    .choice-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .choice-btn .label {
+      position: absolute; bottom: -20px;
+      font-size: 0.55rem; letter-spacing: 0.2em; color: var(--muted);
+      text-transform: uppercase; transition: bottom 0.2s;
+    }
+    .choice-btn:hover .label { bottom: 6px; }
+
+    /* RESET */
+    .reset-btn {
+      display: block; margin: 0 auto;
+      padding: 0.6rem 2rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+      cursor: pointer; border-radius: 6px; transition: all 0.2s;
+    }
+    .reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* HISTORY */
+    .history-section { margin-top: 2rem; }
+    .history-title { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 0.8rem; }
+    .history-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 180px; overflow-y: auto; }
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-track { background: var(--surface); }
+    .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .history-item {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.5rem 0.8rem;
+      background: var(--surface); border-radius: 6px;
+      font-size: 0.7rem; border-left: 3px solid transparent;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+    .history-item.win  { border-left-color: var(--win); }
+    .history-item.lose { border-left-color: var(--lose); }
+    .history-item.draw { border-left-color: var(--draw); }
+    .history-num { color: var(--muted); min-width: 1.5rem; }
+    .history-moves { flex: 1; display: flex; gap: 0.4rem; align-items: center; }
+    .history-result { font-size: 0.65rem; letter-spacing: 0.1em; font-weight: 500; }
+    .history-item.win  .history-result { color: var(--win); }
+    .history-item.lose .history-result { color: var(--lose); }
+    .history-item.draw .history-result { color: var(--draw); }
+
+    /* GAME OVER OVERLAY */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(10,10,15,0.92);
+      backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+    }
+    .overlay.active { display: flex; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    .overlay-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem 4rem;
+      text-align: center;
+      animation: slideUp 0.45s cubic-bezier(0.34,1.56,0.64,1);
+      max-width: 420px; width: 90%;
+    }
+    @keyframes slideUp { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    .overlay-trophy { font-size: 5rem; margin-bottom: 1rem; line-height: 1; }
+    .overlay-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem; letter-spacing: 0.05em; line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .overlay-title.you-win { color: var(--win); }
+    .overlay-title.cpu-win { color: var(--lose); }
+    .overlay-title.tied    { color: var(--draw); }
+
+    .overlay-subtitle { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 2rem; }
+
+    .overlay-scores {
+      display: flex; gap: 2rem; justify-content: center;
+      align-items: center; margin-bottom: 2rem;
+    }
+    .overlay-score-block { text-align: center; }
+    .overlay-score-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.2rem; }
+    .overlay-score-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; line-height: 1; }
+    .overlay-score-block.you .overlay-score-val { color: var(--accent); }
+    .overlay-score-block.cpu .overlay-score-val { color: var(--accent2); }
+    .overlay-sep { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--border); }
+
+    .overlay-btn {
+      padding: 0.8rem 2.5rem;
+      background: var(--accent); color: #0a0a0f;
+      border: none; border-radius: 8px;
+      font-family: 'DM Mono', monospace; font-size: 0.8rem;
+      font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .overlay-btn:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(232,255,71,0.3); }
+  </style>
+</head>
+<body>
+
+<!-- GAME OVER OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-trophy" id="overlayTrophy">🏆</div>
+    <div class="overlay-title" id="overlayTitle">You Win!</div>
+    <div class="overlay-subtitle" id="overlaySubtitle">Best of 5 — Game Over</div>
+    <div class="overlay-scores">
+      <div class="overlay-score-block you">
+        <div class="overlay-score-label">You</div>
+        <div class="overlay-score-val" id="overlayScoreYou">0</div>
+      </div>
+      <div class="overlay-sep">:</div>
+      <div class="overlay-score-block cpu">
+        <div class="overlay-score-label">CPU</div>
+        <div class="overlay-score-val" id="overlayScoreCpu">0</div>
+      </div>
+    </div>
+    <button class="overlay-btn" onclick="resetGame()">Play Again</button>
+  </div>
+</div>
+
+<div class="container">
+  <header>
+    <h1>Rock Paper Scissors</h1>
+    <p class="subtitle">Best of 5 &nbsp;·&nbsp; Human vs Machine</p>
+  </header>
+
+  <div class="round-indicator" id="roundPips">
+    <div class="round-pip" id="pip1"></div>
+    <div class="round-pip" id="pip2"></div>
+    <div class="round-pip" id="pip3"></div>
+    <div class="round-pip" id="pip4"></div>
+    <div class="round-pip" id="pip5"></div>
+  </div>
+
+  <div class="scoreboard">
+    <div class="score-block score-you">
+      <div class="score-label">You</div>
+      <div class="score-value" id="scoreYou">0</div>
+    </div>
+    <div class="score-sep">:</div>
+    <div class="score-block score-cpu">
+      <div class="score-label">CPU</div>
+      <div class="score-value" id="scoreCpu">0</div>
+    </div>
+  </div>
+
+  <div class="arena">
+    <div class="combatant">
+      <div class="combatant-label">You</div>
+      <div class="choice-display" id="playerDisplay">🤔</div>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="combatant">
+      <div class="combatant-label">CPU</div>
+      <div class="choice-display" id="cpuDisplay">🤖</div>
+    </div>
+  </div>
+
+  <div class="result-banner">
+    <div class="result-text" id="resultText">Choose your move</div>
+  </div>
+
+  <div class="choices">
+    <button class="choice-btn" onclick="play('rock')" aria-label="Rock">🪨<span class="label">rock</span></button>
+    <button class="choice-btn" onclick="play('paper')" aria-label="Paper">📄<span class="label">paper</span></button>
+    <button class="choice-btn" onclick="play('scissors')" aria-label="Scissors">✂️<span class="label">scissors</span></button>
+  </div>
+
+  <button class="reset-btn" onclick="resetGame()">Reset Game</button>
+
+  <div class="history-section">
+    <div class="history-title">Round History</div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<script>
+  var TOTAL_ROUNDS = 5;
+  var emojis  = { rock: '🪨', paper: '📄', scissors: '✂️' };
+  var beats   = { rock: 'scissors', paper: 'rock', scissors: 'paper' };
+  var choices = ['rock', 'paper', 'scissors'];
+
+  var scores        = { you: 0, cpu: 0 };
+  var round         = 0;
+  var busy          = false;
+  var roundOutcomes = [];
+
+  function $(id) { return document.getElementById(id); }
+
+  function showResult(text, cls) {
+    var el = $('resultText');
+    el.className = 'result-text show';
+    el.textContent = text;
+    if (cls) el.classList.add(cls);
+  }
+
+  function animateScore(id) {
+    var el = $(id);
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+
+  function updatePips() {
+    for (var i = 0; i < TOTAL_ROUNDS; i++) {
+      var pip = $('pip' + (i + 1));
+      pip.className = 'round-pip';
+      if (i < roundOutcomes.length) {
+        pip.classList.add(roundOutcomes[i]);
+      }
+    }
+  }
+
+  function addHistory(r, playerChoice, cpuChoice, outcome) {
+    var list = $('historyList');
+    var item = document.createElement('div');
+    item.className = 'history-item ' + outcome;
+    item.innerHTML =
+      '<span class="history-num">#' + r + '</span>' +
+      '<span class="history-moves">' + emojis[playerChoice] +
+        ' <span style="color:var(--muted)">vs</span> ' + emojis[cpuChoice] + '</span>' +
+      '<span class="history-result">' + outcome.toUpperCase() + '</span>';
+    list.prepend(item);
+  }
+
+  function setButtons(disabled) {
+    document.querySelectorAll('.choice-btn').forEach(function(b) {
+      b.disabled = disabled;
+    });
+  }
+
+  function showGameOver() {
+    $('overlayScoreYou').textContent = scores.you;
+    $('overlayScoreCpu').textContent = scores.cpu;
+
+    var title  = $('overlayTitle');
+    var trophy = $('overlayTrophy');
+    var sub    = $('overlaySubtitle');
+
+    if (scores.you > scores.cpu) {
+      title.textContent  = 'You Win!';
+      title.className    = 'overlay-title you-win';
+      trophy.textContent = '🏆';
+      sub.textContent    = 'Congratulations — You beat the CPU!';
+    } else if (scores.cpu > scores.you) {
+      title.textContent  = 'CPU Wins!';
+      title.className    = 'overlay-title cpu-win';
+      trophy.textContent = '🤖';
+      sub.textContent    = 'The machine triumphs. Try again?';
+    } else {
+      title.textContent  = "It's a Tie!";
+      title.className    = 'overlay-title tied';
+      trophy.textContent = '🤝';
+      sub.textContent    = 'Perfectly matched — play again!';
+    }
+
+    $('overlay').classList.add('active');
+  }
+
+  function play(playerChoice) {
+    if (busy || round >= TOTAL_ROUNDS) return;
+    busy = true;
+    setButtons(true);
+
+    var playerDisplay = $('playerDisplay');
+    var cpuDisplay    = $('cpuDisplay');
+
+    playerDisplay.className    = 'choice-display reveal';
+    playerDisplay.textContent  = emojis[playerChoice];
+    cpuDisplay.className       = 'choice-display';
+    cpuDisplay.textContent     = '⏳';
+
+    showResult('CPU is thinking\u2026');
+
+    setTimeout(function() {
+      var cpuChoice = choices[Math.floor(Math.random() * 3)];
+      cpuDisplay.className    = 'choice-display reveal';
+      cpuDisplay.textContent  = emojis[cpuChoice];
+
+      setTimeout(function() {
+        var outcome, msg;
+
+        if (playerChoice === cpuChoice) {
+          outcome = 'draw';
+          msg     = "It's a Draw!";
+        } else if (beats[playerChoice] === cpuChoice) {
+          outcome = 'win';
+          msg     = 'You Win! \uD83C\uDF89';
+          scores.you++;
+          $('scoreYou').textContent = scores.you;
+          animateScore('scoreYou');
+          playerDisplay.classList.add('winner');
+          cpuDisplay.classList.add('loser');
+        } else {
+          outcome = 'lose';
+          msg     = 'CPU Wins! \uD83D\uDC80';
+          scores.cpu++;
+          $('scoreCpu').textContent = scores.cpu;
+          animateScore('scoreCpu');
+          cpuDisplay.classList.add('winner');
+          playerDisplay.classList.add('loser');
+        }
+
+        round++;
+        roundOutcomes.push(outcome);
+        updatePips();
+        showResult(msg, outcome);
+        addHistory(round, playerChoice, cpuChoice, outcome);
+
+        busy = false;
+
+        if (round >= TOTAL_ROUNDS) {
+          setButtons(true);
+          setTimeout(showGameOver, 1200);
+        } else {
+          setButtons(false);
+        }
+
+      }, 300);
+    }, 700);
+  }
+
+  function resetGame() {
+    scores        = { you: 0, cpu: 0 };
+    round         = 0;
+    busy          = false;
+    roundOutcomes = [];
+
+    $('scoreYou').textContent       = '0';
+    $('scoreCpu').textContent       = '0';
+    $('playerDisplay').className    = 'choice-display';
+    $('playerDisplay').textContent  = '🤔';
+    $('cpuDisplay').className       = 'choice-display';
+    $('cpuDisplay').textContent     = '🤖';
+    $('resultText').className       = 'result-text show';
+    $('resultText').textContent     = 'Choose your move';
+    $('historyList').innerHTML      = '';
+    $('overlay').classList.remove('active');
+
+    updatePips();
+    setButtons(false);
+  }
+
+  // Init
+  $('resultText').classList.add('show');
+  updatePips();
+</script>
+</body>
+</html>
